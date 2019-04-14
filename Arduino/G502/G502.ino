@@ -4,6 +4,10 @@
 #include "g502_rptparser.h"
 #include <SPI.h>
 
+#define bluePin   3
+#define greenPin  5
+#define redPin    6
+
 USB                                             Usb;
 USBHub                                          Hub(&Usb);
 HIDUniversal                                    Hid(&Usb);
@@ -14,7 +18,7 @@ G502ReportParser                                G502(&MouseEvents);
 uint8_t dataHead[] = {0x11, 0xFF, 0x02, 0x3B};
 uint8_t dataTail[10] = {0};
 
-uint16_t colorIndex = 0;
+float colorIndex = 0;
 uint32_t prevMillis = 0;
 
 // LED enum
@@ -27,17 +31,21 @@ enum LED
 // Function prototypes
 void clearBuffers(void);
 void setLedColor(LED led, uint8_t redVal, uint8_t greenVal, uint8_t blueVal);
-void HSVRainbow(uint16_t angle, uint8_t * redVal, uint8_t * greenVal, uint8_t * blueVal);
+void HSVRainbow(float angle, uint8_t * redVal, uint8_t * greenVal, uint8_t * blueVal);
 void setMouseColors(void);
-
 
 void setup()
 {
-  Serial.begin( 115200 );
-  Serial.println("Start");
+  pinMode(bluePin, OUTPUT); //blue
+  pinMode(greenPin, OUTPUT); //greeen
+  pinMode(redPin, OUTPUT); //red
+  
+  //Serial.begin( 115200 );
+  //Serial.println("Start");
 
   if (Usb.Init() == -1)
-      Serial.println("OSC did not start.");
+    Usb.Init();
+      //Serial.println("OSC did not start.");
 
   delay( 200 );
 
@@ -47,7 +55,7 @@ void setup()
 
 void loop()
 { 
-  if(millis() - prevMillis >= 30){
+  if(millis() - prevMillis >= 35){
     prevMillis = millis();
     setMouseColors();
   }
@@ -96,7 +104,7 @@ void setLedColor(LED led, uint8_t redVal, uint8_t greenVal, uint8_t blueVal){
   Usb.ctrlReq(0x01, 0x00, 0x21, 0x09, 0x11, 0x02, 0x0001, sizeof(data), sizeof(data), data, NULL);
 }
 
-void HSVRainbow(uint16_t angle, uint8_t * redVal, uint8_t * greenVal, uint8_t * blueVal){
+void HSVRainbow(float angle, uint8_t * redVal, uint8_t * greenVal, uint8_t * blueVal){
   float r = 0.0f, g = 0.0f, b = 0.0f;
   float a = angle;
   if(a <= 60.0f){
@@ -136,16 +144,23 @@ void HSVRainbow(uint16_t angle, uint8_t * redVal, uint8_t * greenVal, uint8_t * 
 }
 
 void setMouseColors(void){
-  uint8_t *r, *g,*b;
-  HSVRainbow(colorIndex,r,g,b);
+  uint8_t redValue, greenValue, blueValue;
+  HSVRainbow(colorIndex, &redValue, &greenValue, &blueValue);
+
+  //Set RGB Led Colors
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin, greenValue);
+  analogWrite(bluePin, blueValue);
   
   clearBuffers();
-  setLedColor(dpiLed, *r, *g, *b);
+  setLedColor(dpiLed, redValue, greenValue, blueValue);
+
   clearBuffers();
-  setLedColor(logoLed, *r, *g, *b);
+  setLedColor(logoLed, redValue, greenValue, blueValue);
+ 
+  //Increment hue
+  colorIndex += 1.0f;
   
-  colorIndex--;
-  
-  if(colorIndex > 360)
-    colorIndex = 360;
+  if (colorIndex > 360.0f)
+    colorIndex = 0.0f;
 }
