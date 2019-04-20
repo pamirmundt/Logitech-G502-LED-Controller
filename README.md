@@ -11,3 +11,19 @@ There are two interfaces under mouse:
 
 ### Notes:
 - Interrupt events should be read (Interface-0) continuously. Otherwise mouse buffer fills and you cannot send any more data to Interface-1.
+
+## Board and Schematics
+The system consists of 3 different boards: (1) Arduino UNO, (2)USB Host Shield 2.0 and (3)a custom LED controller/power supply board.
+
+|     Layer     | Board Name                          | Board Description                   |
+| ------------- | ----------------------------------- | ----------------------------------- |
+|  1(bottom)    | Arduino UNO                         | MCU                                 |
+|  2(middle)    | USB Host Shield 2.0                 | USB Controller in Host Mode         |
+|  3(top)       | LED Controller and Power Supply (*) | RGB Led controller and 5V regulator |
+
+(*) Eagle CAD files (.brd, .sch) can be found in the repo
+
+## Future Improvements
+- [ ] Switching regulator for 5V
+- [ ] Single board layout
+- [ ] Inconsistent color transitions between LED strip and G502 LEDs
